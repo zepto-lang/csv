@@ -1,0 +1,45 @@
+(module "csv"
+  (export
+    (list "read" read)
+    (list "write" write))
+
+  (default #{:separator #\,
+             :quote #\"
+             :port #f
+             :quote? #t})
+
+  (write (lambda (x . opt)
+    (let ((conf (if (null? opt) default (make-hash default (car opt)))))
+      (define (writel line)
+          (string:join
+            (map
+              (lambda (x)
+                (let ((qu (conf :quote)))
+                  (if (and (conf :quote?) (in? x (conf :separator)))
+                    (++ (string qu) x (string qu))
+                    x)))
+              line)
+            (conf :separator)))
+      (let ((parsed (string:join (map writel x) #\newline)))
+        (if (conf :port)
+          (write parsed :port)
+          parsed)))))
+
+  (read (lambda (x . opt)
+    (let ((str (if (string? x) x (read-contents x)))
+          (conf (if (null? opt) default (make-hash default (car opt)))))
+      (define (readl line parsed)
+        (cond
+          ((string:empty? line) parsed)
+          ((eq? (string:head line) (conf :quote))
+            (let ((sep (add1 (string:find (string:tail line) (conf :quote)))))
+              (if (eq? sep 0) 
+                :err-quote-mismatch
+                (readl (substring line (+ sep 2) (length line)) (++ parsed (substring line 1 sep))))))
+          (else
+            (let ((sep (string:find line (conf :separator))))
+              (if (eq? sep -1)
+                (++ parsed line)
+                (readl (substring line (add1 sep) (length line)) (++ parsed (substring line 0 sep))))))))
+      (map (lambda (line) (readl line []))
+        (string:split str #\newline))))))

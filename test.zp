@@ -1,0 +1,49 @@
+(load "csv")
+(load "minitest/minitest")
+(define csv:read (import "csv:read"))
+(define csv:write (import "csv:write"))
+(define minitest:assert-equal (import "minitest:assert-equal"))
+((import "minitest:colorize") #t)
+((import "minitest:verbose") #t)
+
+(minitest:assert-equal
+  [("a" "b") ("1" "2") ("3" "4")]
+  (csv:read "a,b\n1,2\n3,4")
+  "test that we can read in csv data")
+
+(minitest:assert-equal
+  [("a,b" "b") ("1" "2") ("3" "4")]
+  (csv:read "\"a,b\",b\n1,2\n3,4")
+  "test that we can read in quoted csv data")
+
+(minitest:assert-equal
+  [("a" "b") ("1" "2,2") ("3" "4")]
+  (csv:read "a,b\n1,\"2,2\"\n3,4")
+  "test that we can read in quoted csv data when quoting is at any position")
+
+(minitest:assert-equal
+  [("a" "b") ("1" "2-2") ("3" "4")]
+  (csv:read "a-b\n1-\"2-2\"\n3-4" #{:separator #\-})
+  "test that we can read in csv data with custom separator")
+
+(minitest:assert-equal
+  "a,b\n1,22\n3,4"
+  (csv:write [("a" "b") ("1" "22") ("3" "4")])
+  "test that we can write out csv data")
+
+(minitest:assert-equal
+  "a,b\n1,\"2,2\"\n3,4"
+  (csv:write [("a" "b") ("1" "2,2") ("3" "4")])
+  "test that we can write out quoted csv data")
+
+(minitest:assert-equal
+  "a,b\n1,\"2,2\"\n3,4"
+  (csv:write [("a" "b") ("1" "2,2") ("3" "4")])
+  "test that we can write out quoted csv data")
+
+(minitest:assert-equal
+  "alb\n1l2\n3l4"
+  (csv:write [("a" "b") ("1" "2") ("3" "4")] #{:separator #\l})
+  "test that we can write out csv data with custom separator")
+
+((import "minitest:results"))
