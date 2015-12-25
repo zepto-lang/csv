@@ -1,6 +1,6 @@
 # csv
 
-A minimal csv library in and for zepto.
+A minimal CSV library in and for zepto.
 It is largely compatible with Clojure's data.csv.
 
 ## Usage
@@ -38,7 +38,7 @@ This library contains the functions `read` and `write`:
 
 A complete list of modifiers and their default values:
 
-```
+```clojure
 ; for write:
 #{:separator #\, ; will separate cells
   :quote #\" ; will quote cells
