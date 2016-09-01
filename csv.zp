@@ -8,7 +8,22 @@
              :port #f
              :quote? #t})
 
-  (write (lambda (x . opt)
+  (write (lambda (l . opt)
+    "translates a list of lists into the CSV format.
+     The optional config object <par>opt</par> supports
+     the following options (listed here with default values):
+     <zepto>
+     #{:separator #\,
+       :quote #\"
+       :port #f
+       :quote? #t})
+     </zepto>
+
+     params:
+       - l: the list that should be parsed
+       - opt: an optional argument that holds the configuration
+     complexity: O(n)
+     returns: nil if it was written to a port, or the CSV value if no port was specified"
     (let ((conf (if (null? opt) default (make-hash default (car opt)))))
       (define (writel line)
           (string:join
@@ -20,13 +35,22 @@
                     x)))
               line)
             (conf :separator)))
-      (let ((parsed (string:join (map writel x) #\newline)))
+      (let ((parsed (string:join (map writel s) #\newline)))
         (if (conf :port)
-          (write parsed :port)
+          (write parsed (conf :port))
           parsed)))))
 
-  (read (lambda (x . opt)
-    (let ((str (if (string? x) x (read-contents x)))
+  (read (lambda (s . opt)
+    "translates CSV values (provided in <par>s</par> as a string or port)
+     to a list of lists (where the outer list is the line and the inner list
+     are the values. The supported options are the same as in <fun>csv:write</fun>.
+
+     params:
+       - s: the string or port
+       - opt: an optional argument that holds the configuration
+     complexity: O(n)
+     returns: the list of lists"
+    (let ((str (if (string? s) s (read-contents s)))
           (conf (if (null? opt) default (make-hash default (car opt)))))
       (define (readl line parsed)
         (cond
